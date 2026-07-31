@@ -1,0 +1,36 @@
+body{
+    background:#202225;
+    color:white;
+    font-family:Arial;
+    display:flex;
+    justify-content:center;
+    margin-top:60px;
+}
+
+.container{
+    width:500px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    font-size:18px;
+    border-radius:8px;
+    border:none;
+}
+
+#results{
+    background:#2f3136;
+    margin-top:10px;
+    border-radius:8px;
+}
+
+.result{
+    padding:12px;
+    cursor:pointer;
+    border-bottom:1px solid #444;
+}
+
+.result:hover{
+    background:#5865F2;
+}
