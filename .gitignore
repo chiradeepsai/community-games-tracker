@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment variables (contains your Discord bot token)
+.env
+
+# Prisma generated files (optional)
+.prisma/
+
+# Database files (optional for now)
+*.db
+*.db-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
