@@ -31,9 +31,7 @@ async function checkLogin() {
     }
 
     userSection.innerHTML = `
-        <p>
-            👤 Logged in as <b>${data.user.username}</b>
-        </p>
+        <p>👤 Logged in as <b>${data.user.username}</b></p>
 
         <a href="/auth/logout">
             <button>Logout</button>
@@ -154,7 +152,7 @@ function removeGame(index) {
 window.removeGame = removeGame;
 
 // ==========================
-// Save
+// Save Games
 // ==========================
 
 saveBtn.onclick = async () => {
@@ -189,4 +187,46 @@ saveBtn.onclick = async () => {
 
     alert(data.message);
 
+    loadLeaderboard();
+
 };
+
+// ==========================
+// Leaderboard
+// ==========================
+
+async function loadLeaderboard() {
+
+    const leaderboard = document.getElementById("leaderboard");
+
+    const res = await fetch("/api/top-games");
+
+    const games = await res.json();
+
+    if (games.length === 0) {
+
+        leaderboard.innerHTML = "<p>No games submitted yet.</p>";
+
+        return;
+
+    }
+
+    leaderboard.innerHTML = "";
+
+    const medals = ["🥇", "🥈", "🥉"];
+
+    games.forEach((game, index) => {
+
+        leaderboard.innerHTML += `
+            <p>
+                ${medals[index] || "🎮"}
+                <b>${game.game_name}</b>
+                (${game.players} players)
+            </p>
+        `;
+
+    });
+
+}
+
+loadLeaderboard();
