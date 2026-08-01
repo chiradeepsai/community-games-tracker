@@ -19,7 +19,7 @@ function startReminderScheduler(client) {
 
         sendReminders(client);
 
-    }, 2 * 60 * 1000);
+    }, 48 * 60 * 1000);
 
 }
 
