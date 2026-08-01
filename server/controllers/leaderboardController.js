@@ -1,5 +1,9 @@
 const db = require("../../database/database");
 
+// ==========================
+// TOP GAMES
+// ==========================
+
 function getTopGames(req, res) {
 
     db.all(
@@ -15,7 +19,8 @@ function getTopGames(req, res) {
 
         GROUP BY games.id
 
-        ORDER BY players DESC
+        ORDER BY players DESC,
+                 games.game_name ASC
 
         LIMIT 5`,
 
@@ -25,15 +30,69 @@ function getTopGames(req, res) {
 
             if (err) {
 
-                console.log(err);
+                console.error(err);
 
                 return res.status(500).json({
-                    error: "Database Error"
+                    success: false,
+                    message: "Database Error"
                 });
 
             }
 
-            res.json(rows);
+            res.json({
+                success: true,
+                games: rows
+            });
+
+        }
+
+    );
+
+}
+
+// ==========================
+// FIND PLAYERS
+// ==========================
+
+function findPlayers(req, res) {
+
+    db.all(
+
+        `SELECT
+            games.game_name,
+            users.username
+
+        FROM user_games
+
+        JOIN users
+            ON users.id = user_games.user_id
+
+        JOIN games
+            ON games.id = user_games.game_id
+
+        ORDER BY
+            games.game_name ASC,
+            users.username ASC`,
+
+        [],
+
+        (err, rows) => {
+
+            if (err) {
+
+                console.error(err);
+
+                return res.status(500).json({
+                    success: false,
+                    message: "Database Error"
+                });
+
+            }
+
+            res.json({
+                success: true,
+                players: rows
+            });
 
         }
 
@@ -42,5 +101,9 @@ function getTopGames(req, res) {
 }
 
 module.exports = {
-    getTopGames
+
+    getTopGames,
+
+    findPlayers
+
 };

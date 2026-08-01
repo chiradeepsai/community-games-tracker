@@ -2,13 +2,12 @@ const express = require("express");
 
 const router = express.Router();
 
-const {
-    saveGames,
-    searchGames
-} = require("../controllers/gamesController");
+const controller = require("../controllers/gamesController");
 
-router.post("/save-games", saveGames);
+console.log(controller);
 
-router.get("/search-games", searchGames);
+router.post("/save-games", controller.saveGames);
+
+router.get("/search-games", controller.searchGames);
 
 module.exports = router;

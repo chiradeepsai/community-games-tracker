@@ -65,6 +65,24 @@ const db = new sqlite3.Database("./database/community.db", (err) => {
                 )
             `);
 
+            // ==========================
+            // COMMUNITY HUB
+            // ==========================
+
+            db.run(`
+                CREATE TABLE IF NOT EXISTS community_hub (
+
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                    guild_id TEXT UNIQUE,
+
+                    channel_id TEXT,
+
+                    message_id TEXT
+
+                )
+            `);
+
             console.log("✅ Database Tables Ready");
 
         });
