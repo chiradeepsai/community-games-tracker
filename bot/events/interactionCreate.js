@@ -30,6 +30,8 @@ module.exports = async (interaction) => {
 
     if (interaction.isButton()) {
 
+        const guildId = interaction.guild.id;
+
         switch (interaction.customId) {
 
             // ==========================
@@ -38,7 +40,7 @@ module.exports = async (interaction) => {
 
             case "leaderboard": {
 
-                const topGames = await getTopGames();
+                const topGames = await getTopGames(guildId);
 
                 let description = "No games submitted yet.";
 
@@ -59,7 +61,7 @@ module.exports = async (interaction) => {
 
                     .setColor("#FFD700")
 
-                    .setTitle("🏆 Community Leaderboard")
+                    .setTitle(`🏆 ${interaction.guild.name}`)
 
                     .setDescription(description)
 
@@ -89,19 +91,17 @@ module.exports = async (interaction) => {
 
             case "players": {
 
-                const players = await getPlayers();
+                const players = await getPlayers(guildId);
 
                 if (players.length === 0) {
 
-                    await interaction.reply({
+                    return interaction.reply({
 
                         content: "No players have shared their games yet.",
 
                         ephemeral: true
 
                     });
-
-                    return;
 
                 }
 
@@ -121,13 +121,13 @@ module.exports = async (interaction) => {
 
                 let description = "";
 
-                Object.keys(grouped).forEach(game => {
+                Object.entries(grouped).forEach(([game, users]) => {
 
                     description += `🎮 **${game}**\n`;
 
-                    grouped[game].forEach(username => {
+                    users.forEach(user => {
 
-                        description += `• ${username}\n`;
+                        description += `• ${user}\n`;
 
                     });
 
@@ -139,7 +139,7 @@ module.exports = async (interaction) => {
 
                     .setColor("#57F287")
 
-                    .setTitle("👥 Community Players")
+                    .setTitle(`👥 ${interaction.guild.name}`)
 
                     .setDescription(description)
 

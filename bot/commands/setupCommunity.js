@@ -17,6 +17,7 @@ module.exports = {
     async execute(interaction) {
 
         const guildId = interaction.guild.id;
+        const guildName = interaction.guild.name;
 
         db.get(
             "SELECT * FROM community_hub WHERE guild_id = ?",
@@ -45,9 +46,13 @@ module.exports = {
 
                 await interaction.deferReply({ ephemeral: true });
 
-                const topGames = await getTopGames();
+                const topGames = await getTopGames(guildId);
 
-                const hub = buildCommunityHub(topGames);
+                const hub = buildCommunityHub(
+                    guildId,
+                    guildName,
+                    topGames
+                );
 
                 const message = await interaction.channel.send(hub);
 
@@ -63,10 +68,11 @@ module.exports = {
 
                 db.run(
                     `INSERT INTO community_hub
-                    (guild_id, channel_id, message_id)
-                    VALUES (?, ?, ?)`,
+                    (guild_id, guild_name, channel_id, message_id)
+                    VALUES (?, ?, ?, ?)`,
                     [
-                        interaction.guild.id,
+                        guildId,
+                        guildName,
                         interaction.channel.id,
                         message.id
                     ]

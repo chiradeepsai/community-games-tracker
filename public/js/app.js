@@ -3,8 +3,18 @@ const results = document.getElementById("results");
 const selectedList = document.getElementById("selectedGames");
 const saveBtn = document.getElementById("saveBtn");
 const userSection = document.getElementById("userSection");
+const serverInfo = document.getElementById("serverInfo");
 
 let selectedGames = [];
+
+// ==========================
+// Current Server
+// ==========================
+
+const params = new URLSearchParams(window.location.search);
+
+const guildId = params.get("guildId");
+const guildName = params.get("guildName");
 
 // ==========================
 // Check Login Status
@@ -37,6 +47,17 @@ async function checkLogin() {
             <button>Logout</button>
         </a>
     `;
+
+    if (guildId && guildName) {
+
+        serverInfo.innerHTML = `
+            <p>
+                🏠 <b>Updating games for</b><br>
+                ${decodeURIComponent(guildName)}
+            </p>
+        `;
+
+    }
 
     search.disabled = false;
     saveBtn.disabled = false;
@@ -157,6 +178,14 @@ window.removeGame = removeGame;
 
 saveBtn.onclick = async () => {
 
+    if (!guildId) {
+
+        alert("Please open this page using the Discord Community Hub.");
+
+        return;
+
+    }
+
     if (selectedGames.length === 0) {
 
         alert("Select at least one game.");
@@ -177,6 +206,10 @@ saveBtn.onclick = async () => {
 
         body: JSON.stringify({
 
+            guildId,
+
+            guildName,
+
             games: selectedGames
 
         })
@@ -187,46 +220,4 @@ saveBtn.onclick = async () => {
 
     alert(data.message);
 
-    loadLeaderboard();
-
 };
-
-// ==========================
-// Leaderboard
-// ==========================
-
-async function loadLeaderboard() {
-
-    const leaderboard = document.getElementById("leaderboard");
-
-    const res = await fetch("/api/top-games");
-
-    const games = await res.json();
-
-    if (games.length === 0) {
-
-        leaderboard.innerHTML = "<p>No games submitted yet.</p>";
-
-        return;
-
-    }
-
-    leaderboard.innerHTML = "";
-
-    const medals = ["🥇", "🥈", "🥉"];
-
-    games.forEach((game, index) => {
-
-        leaderboard.innerHTML += `
-            <p>
-                ${medals[index] || "🎮"}
-                <b>${game.game_name}</b>
-                (${game.players} players)
-            </p>
-        `;
-
-    });
-
-}
-
-loadLeaderboard();

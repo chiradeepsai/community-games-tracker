@@ -1,47 +1,47 @@
 const axios = require("axios");
 const db = require("../../database/database");
 
+// ==========================
+// SEARCH GAMES
+// ==========================
+
 async function searchGames(req, res) {
 
     try {
 
-        const response = await axios.get("https://api.rawg.io/api/games", {
-
-            params: {
-
-                key: process.env.RAWG_API_KEY,
-
-                search: req.query.q,
-
-                page_size: 10
-
+        const response = await axios.get(
+            "https://api.rawg.io/api/games",
+            {
+                params: {
+                    key: process.env.RAWG_API_KEY,
+                    search: req.query.q,
+                    page_size: 10
+                }
             }
+        );
 
-        });
+        res.json(
+            response.data.results.map(game => ({
+                id: game.id,
+                name: game.name
+            }))
+        );
 
-        res.json(response.data.results.map(game => ({
+    } catch (err) {
 
-            id: game.id,
-
-            name: game.name
-
-        })));
-
-    }
-
-    catch (err) {
-
-        console.log(err.message);
+        console.error(err.message);
 
         res.status(500).json({
-
             error: "Search failed"
-
         });
 
     }
 
 }
+
+// ==========================
+// SAVE GAMES
+// ==========================
 
 async function saveGames(req, res) {
 
@@ -60,26 +60,77 @@ async function saveGames(req, res) {
     const discordId = req.session.user.discordId;
     const username = req.session.user.username;
 
-    const games = req.body.games;
+    const {
+
+        guildId,
+
+        guildName,
+
+        games
+
+    } = req.body;
+
+    if (!guildId || !guildName) {
+
+        return res.status(400).json({
+
+            success: false,
+
+            message: "Missing server information."
+
+        });
+
+    }
 
     db.serialize(() => {
 
         db.run(
 
-            `INSERT OR IGNORE INTO users(discord_id, username)
-             VALUES(?, ?)`,
+            `INSERT OR IGNORE INTO users
+            (
+                discord_id,
+                username,
+                guild_id,
+                guild_name
+            )
+            VALUES (?, ?, ?, ?)`,
 
-            [discordId, username]
+            [
+
+                discordId,
+
+                username,
+
+                guildId,
+
+                guildName
+
+            ]
 
         );
 
         db.run(
 
             `UPDATE users
-             SET username = ?
-             WHERE discord_id = ?`,
+             SET
+                username = ?,
+                guild_name = ?
+             WHERE
+                discord_id = ?
+             AND
+                guild_id = ?`,
 
-            [username, discordId]
+            [
+
+                username,
+
+                guildName,
+
+                discordId,
+
+                guildId
+
+            ]
 
         );
 
@@ -87,17 +138,32 @@ async function saveGames(req, res) {
 
             `SELECT id
              FROM users
-             WHERE discord_id = ?`,
+             WHERE
+                discord_id = ?
+             AND
+                guild_id = ?`,
 
-            [discordId],
+            [
+
+                discordId,
+
+                guildId
+
+            ],
 
             (err, user) => {
 
-                if (err) {
+                if (err || !user) {
 
-                    console.log(err);
+                    console.error(err);
 
-                    return;
+                    return res.status(500).json({
+
+                        success: false,
+
+                        message: "Database Error"
+
+                    });
 
                 }
 
@@ -106,7 +172,11 @@ async function saveGames(req, res) {
                     `DELETE FROM user_games
                      WHERE user_id = ?`,
 
-                    [user.id]
+                    [
+
+                        user.id
+
+                    ]
 
                 );
 
@@ -114,10 +184,20 @@ async function saveGames(req, res) {
 
                     db.run(
 
-                        `INSERT OR IGNORE INTO games(rawg_id, game_name)
-                         VALUES(?, ?)`,
+                        `INSERT OR IGNORE INTO games
+                        (
+                            rawg_id,
+                            game_name
+                        )
+                        VALUES (?, ?)`,
 
-                        [game.id, game.name]
+                        [
+
+                            game.id,
+
+                            game.name
+
+                        ]
 
                     );
 
@@ -127,18 +207,32 @@ async function saveGames(req, res) {
                          FROM games
                          WHERE rawg_id = ?`,
 
-                        [game.id],
+                        [
+
+                            game.id
+
+                        ],
 
                         (err, dbGame) => {
 
-                            if (err) return;
+                            if (err || !dbGame) return;
 
                             db.run(
 
-                                `INSERT INTO user_games(user_id, game_id)
-                                 VALUES(?, ?)`,
+                                `INSERT INTO user_games
+                                (
+                                    user_id,
+                                    game_id
+                                )
+                                VALUES (?, ?)`,
 
-                                [user.id, dbGame.id]
+                                [
+
+                                    user.id,
+
+                                    dbGame.id
+
+                                ]
 
                             );
 
@@ -152,7 +246,7 @@ async function saveGames(req, res) {
 
                     success: true,
 
-                    message: "Games Updated Successfully!"
+                    message: `Games updated for ${guildName}!`
 
                 });
 

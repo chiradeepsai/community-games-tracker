@@ -7,12 +7,17 @@ const BASE_URL =
 // TOP GAMES
 // ==========================
 
-async function getTopGames() {
+async function getTopGames(guildId) {
 
     try {
 
         const response = await axios.get(
-            `${BASE_URL}/api/top-games`
+            `${BASE_URL}/api/top-games`,
+            {
+                params: {
+                    guildId
+                }
+            }
         );
 
         return response.data.games;
@@ -31,12 +36,17 @@ async function getTopGames() {
 // FIND PLAYERS
 // ==========================
 
-async function getPlayers() {
+async function getPlayers(guildId) {
 
     try {
 
         const response = await axios.get(
-            `${BASE_URL}/api/find-players`
+            `${BASE_URL}/api/find-players`,
+            {
+                params: {
+                    guildId
+                }
+            }
         );
 
         return response.data.players;

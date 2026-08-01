@@ -22,9 +22,15 @@ const db = new sqlite3.Database("./database/community.db", (err) => {
 
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-                    discord_id TEXT UNIQUE,
+                    discord_id TEXT,
 
-                    username TEXT
+                    username TEXT,
+
+                    guild_id TEXT,
+
+                    guild_name TEXT,
+
+                    UNIQUE(discord_id, guild_id)
 
                 )
             `);
@@ -75,6 +81,8 @@ const db = new sqlite3.Database("./database/community.db", (err) => {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
                     guild_id TEXT UNIQUE,
+
+                    guild_name TEXT,
 
                     channel_id TEXT,
 

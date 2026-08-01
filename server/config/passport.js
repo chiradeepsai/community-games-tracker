@@ -15,15 +15,23 @@ passport.use(
             clientID: process.env.CLIENT_ID,
             clientSecret: process.env.CLIENT_SECRET,
             callbackURL: process.env.REDIRECT_URI,
-            scope: ["identify"]
+
+            // We now request the user's servers
+            scope: ["identify", "guilds"]
         },
 
         (accessToken, refreshToken, profile, done) => {
 
             return done(null, {
+
                 discordId: profile.id,
+
                 username: profile.username,
-                avatar: profile.avatar
+
+                avatar: profile.avatar,
+
+                guilds: profile.guilds || []
+
             });
 
         }

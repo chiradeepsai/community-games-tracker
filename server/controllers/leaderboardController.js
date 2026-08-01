@@ -6,6 +6,8 @@ const db = require("../../database/database");
 
 function getTopGames(req, res) {
 
+    const guildId = req.query.guildId;
+
     db.all(
 
         `SELECT
@@ -14,17 +16,23 @@ function getTopGames(req, res) {
 
         FROM user_games
 
+        JOIN users
+            ON users.id = user_games.user_id
+
         JOIN games
             ON games.id = user_games.game_id
 
+        WHERE users.guild_id = ?
+
         GROUP BY games.id
 
-        ORDER BY players DESC,
-                 games.game_name ASC
+        ORDER BY
+            players DESC,
+            games.game_name ASC
 
         LIMIT 5`,
 
-        [],
+        [guildId],
 
         (err, rows) => {
 
@@ -56,6 +64,8 @@ function getTopGames(req, res) {
 
 function findPlayers(req, res) {
 
+    const guildId = req.query.guildId;
+
     db.all(
 
         `SELECT
@@ -70,11 +80,13 @@ function findPlayers(req, res) {
         JOIN games
             ON games.id = user_games.game_id
 
+        WHERE users.guild_id = ?
+
         ORDER BY
             games.game_name ASC,
             users.username ASC`,
 
-        [],
+        [guildId],
 
         (err, rows) => {
 

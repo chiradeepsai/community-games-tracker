@@ -5,7 +5,7 @@ const {
     ButtonStyle
 } = require("discord.js");
 
-function buildCommunityHub(topGames = []) {
+function buildCommunityHub(guildId, guildName, topGames = []) {
 
     let leaderboard = "No games submitted yet.\n\nBe the first to update your games!";
 
@@ -26,6 +26,9 @@ function buildCommunityHub(topGames = []) {
             .join("\n\n");
 
     }
+
+    const websiteUrl =
+        `https://community-games-tracker.onrender.com/?guildId=${guildId}&guildName=${encodeURIComponent(guildName)}`;
 
     const embed = new EmbedBuilder()
 
@@ -69,7 +72,7 @@ ${leaderboard}
 
                 .setStyle(ButtonStyle.Link)
 
-                .setURL("https://community-games-tracker.onrender.com"),
+                .setURL(websiteUrl),
 
             new ButtonBuilder()
 
