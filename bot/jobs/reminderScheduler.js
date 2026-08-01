@@ -1,24 +1,25 @@
 const db = require("../../database/database");
 
+const {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
+} = require("discord.js");
+
+
 function startReminderScheduler(client) {
 
     console.log("⏰ Reminder Scheduler Started");
 
 
     // TEST MODE
-    // Sends reminder every 10 minutes
+    // Sends reminder every 2 minutes
 
     setInterval(() => {
 
         sendReminders(client);
 
     }, 2 * 60 * 1000);
-
-
-    // Optional immediate test after bot starts
-    // Remove later if not needed
-
-    // sendReminders(client);
 
 }
 
@@ -70,16 +71,42 @@ function sendReminders(client) {
                     }
 
 
+                    const row = new ActionRowBuilder()
+                        .addComponents(
+
+                            new ButtonBuilder()
+
+                                .setLabel("🎮 Update My Games")
+
+                                .setStyle(ButtonStyle.Link)
+
+                                .setURL(
+                                    "https://community-games-tracker.onrender.com"
+                                )
+
+                        );
+
+
                     await channel.send({
 
                         content:
 `🎮 **Community Gaming Reminder**
 
-What are you playing?
+Looking for teammates?
 
-Update your games and find teammates!
+Update the games you play and let your community know!
 
-👇 Use the Community Games Hub buttons to join the fun.`
+👇 Click **Update My Games** below:
+
+1️⃣ Login with Discord  
+2️⃣ Select up to 3 games you play  
+3️⃣ Save your choices  
+
+Your games will appear in the community leaderboard and player list.
+
+Let's find people to play with! 🎮`,
+
+                        components: [row]
 
                     });
 
