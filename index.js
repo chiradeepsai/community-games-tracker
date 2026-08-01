@@ -19,7 +19,12 @@ const authRoutes = require("./server/routes/auth");
 // Discord Interaction Handler
 const interactionCreate = require("./bot/events/interactionCreate");
 
+// Reminder Scheduler
+const startReminderScheduler = require("./bot/jobs/reminderScheduler");
+
+
 const app = express();
+
 
 // ==========================
 // Middleware
@@ -41,6 +46,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+
 // ==========================
 // Routes
 // ==========================
@@ -49,24 +55,39 @@ app.use("/api", gamesRoutes);
 app.use("/api", leaderboardRoutes);
 app.use("/auth", authRoutes);
 
+
 // ==========================
 // Discord Bot
 // ==========================
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds]
+
+    intents: [
+        GatewayIntentBits.Guilds
+    ]
+
 });
+
 
 client.once(Events.ClientReady, (client) => {
 
     console.log(`✅ Discord Bot Online (${client.user.tag})`);
 
+    // Start reminder system
+    startReminderScheduler(client);
+
 });
 
+
 // Handle Slash Commands & Buttons
-client.on(Events.InteractionCreate, interactionCreate);
+client.on(
+    Events.InteractionCreate,
+    interactionCreate
+);
+
 
 client.login(process.env.DISCORD_TOKEN);
+
 
 // ==========================
 // Website
@@ -75,6 +96,7 @@ client.login(process.env.DISCORD_TOKEN);
 app.listen(3000, () => {
 
     console.log("🌐 Website Running");
+
     console.log("http://localhost:3000");
 
 });
