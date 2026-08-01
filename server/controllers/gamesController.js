@@ -6,26 +6,37 @@ async function searchGames(req, res) {
     try {
 
         const response = await axios.get("https://api.rawg.io/api/games", {
+
             params: {
+
                 key: process.env.RAWG_API_KEY,
+
                 search: req.query.q,
+
                 page_size: 10
+
             }
+
         });
 
-        res.json(
-            response.data.results.map(game => ({
-                id: game.id,
-                name: game.name
-            }))
-        );
+        res.json(response.data.results.map(game => ({
 
-    } catch (err) {
+            id: game.id,
+
+            name: game.name
+
+        })));
+
+    }
+
+    catch (err) {
 
         console.log(err.message);
 
         res.status(500).json({
+
             error: "Search failed"
+
         });
 
     }
@@ -34,74 +45,119 @@ async function searchGames(req, res) {
 
 async function saveGames(req, res) {
 
-    const games = req.body.games;
+    if (!req.session.user) {
 
-    // Temporary user until Discord login is added
-    const username = "testuser";
+        return res.status(401).json({
+
+            success: false,
+
+            message: "Please login with Discord."
+
+        });
+
+    }
+
+    const discordId = req.session.user.discordId;
+    const username = req.session.user.username;
+
+    const games = req.body.games;
 
     db.serialize(() => {
 
-        // Create user if not exists
         db.run(
-            `INSERT OR IGNORE INTO users(username) VALUES(?)`,
-            [username]
+
+            `INSERT OR IGNORE INTO users(discord_id, username)
+             VALUES(?, ?)`,
+
+            [discordId, username]
+
         );
 
-        // Get user id
+        db.run(
+
+            `UPDATE users
+             SET username = ?
+             WHERE discord_id = ?`,
+
+            [username, discordId]
+
+        );
+
         db.get(
-            `SELECT id FROM users WHERE username = ?`,
-            [username],
+
+            `SELECT id
+             FROM users
+             WHERE discord_id = ?`,
+
+            [discordId],
+
             (err, user) => {
 
                 if (err) {
+
                     console.log(err);
+
                     return;
+
                 }
 
-                // Delete old games (Option A)
                 db.run(
-                    `DELETE FROM user_games WHERE user_id = ?`,
+
+                    `DELETE FROM user_games
+                     WHERE user_id = ?`,
+
                     [user.id]
+
                 );
 
                 games.forEach(game => {
 
-                    // Save game if new
                     db.run(
+
                         `INSERT OR IGNORE INTO games(rawg_id, game_name)
                          VALUES(?, ?)`,
+
                         [game.id, game.name]
+
                     );
 
-                    // Get game id
                     db.get(
-                        `SELECT id FROM games WHERE rawg_id = ?`,
+
+                        `SELECT id
+                         FROM games
+                         WHERE rawg_id = ?`,
+
                         [game.id],
+
                         (err, dbGame) => {
 
-                            if (err) {
-                                console.log(err);
-                                return;
-                            }
+                            if (err) return;
 
-                            // Link user ↔ game
                             db.run(
+
                                 `INSERT INTO user_games(user_id, game_id)
                                  VALUES(?, ?)`,
+
                                 [user.id, dbGame.id]
+
                             );
 
                         }
+
                     );
 
                 });
 
                 res.json({
+
                     success: true,
-                    message: "Games saved successfully!"
+
+                    message: "Games Updated Successfully!"
+
                 });
 
             }
+
         );
 
     });
@@ -109,6 +165,9 @@ async function saveGames(req, res) {
 }
 
 module.exports = {
+
     searchGames,
+
     saveGames
+
 };

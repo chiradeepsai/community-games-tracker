@@ -2,19 +2,68 @@ const search = document.getElementById("search");
 const results = document.getElementById("results");
 const selectedList = document.getElementById("selectedGames");
 const saveBtn = document.getElementById("saveBtn");
+const userSection = document.getElementById("userSection");
 
 let selectedGames = [];
+
+// ==========================
+// Check Login Status
+// ==========================
+
+async function checkLogin() {
+
+    const res = await fetch("/auth/me");
+    const data = await res.json();
+
+    if (!data.loggedIn) {
+
+        userSection.innerHTML = `
+            <a href="/auth/discord">
+                <button>Login with Discord</button>
+            </a>
+        `;
+
+        search.disabled = true;
+        saveBtn.disabled = true;
+
+        return;
+
+    }
+
+    userSection.innerHTML = `
+        <p>
+            👤 Logged in as <b>${data.user.username}</b>
+        </p>
+
+        <a href="/auth/logout">
+            <button>Logout</button>
+        </a>
+    `;
+
+    search.disabled = false;
+    saveBtn.disabled = false;
+
+}
+
+checkLogin();
+
+// ==========================
+// Search Games
+// ==========================
 
 search.addEventListener("input", async () => {
 
     const query = search.value.trim();
 
     if (query.length < 2) {
+
         results.innerHTML = "";
         return;
+
     }
 
     const res = await fetch(`/api/search-games?q=${encodeURIComponent(query)}`);
+
     const games = await res.json();
 
     results.innerHTML = "";
@@ -34,6 +83,10 @@ search.addEventListener("input", async () => {
     });
 
 });
+
+// ==========================
+// Add Game
+// ==========================
 
 function addGame(game) {
 
@@ -63,15 +116,22 @@ function addGame(game) {
 
 }
 
+// ==========================
+// Render Selected Games
+// ==========================
+
 function renderSelected() {
 
     selectedList.innerHTML = "";
 
-    selectedGames.forEach(game => {
+    selectedGames.forEach((game, index) => {
 
         const li = document.createElement("li");
 
-        li.innerText = game.name;
+        li.innerHTML = `
+            ${game.name}
+            <button onclick="removeGame(${index})">❌</button>
+        `;
 
         selectedList.appendChild(li);
 
@@ -79,7 +139,33 @@ function renderSelected() {
 
 }
 
+// ==========================
+// Remove Game
+// ==========================
+
+function removeGame(index) {
+
+    selectedGames.splice(index, 1);
+
+    renderSelected();
+
+}
+
+window.removeGame = removeGame;
+
+// ==========================
+// Save
+// ==========================
+
 saveBtn.onclick = async () => {
+
+    if (selectedGames.length === 0) {
+
+        alert("Select at least one game.");
+
+        return;
+
+    }
 
     const response = await fetch("/api/save-games", {
 
