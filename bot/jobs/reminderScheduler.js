@@ -12,7 +12,7 @@ function startReminderScheduler(client) {
 
         sendReminders(client);
 
-    }, 10 * 60 * 1000);
+    }, 2 * 60 * 1000);
 
 
     // Optional immediate test after bot starts
