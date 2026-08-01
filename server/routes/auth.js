@@ -3,10 +3,28 @@ const passport = require("passport");
 
 const router = express.Router();
 
+
+// ==========================
+// DISCORD LOGIN
+// ==========================
+
 router.get(
     "/discord",
+    (req, res, next) => {
+
+        // Remember where the user came from
+        req.session.returnUrl = req.headers.referer || "/";
+
+        next();
+
+    },
     passport.authenticate("discord")
 );
+
+
+// ==========================
+// DISCORD CALLBACK
+// ==========================
 
 router.get(
     "/discord/callback",
@@ -27,10 +45,26 @@ router.get(
 
         };
 
+
+        // Return to original page
+        const returnUrl = req.session.returnUrl;
+
+
+        delete req.session.returnUrl;
+
+
+        if (returnUrl) {
+
+            return res.redirect(returnUrl);
+
+        }
+
+
         res.redirect("/");
 
     }
 );
+
 
 // ==========================
 // CURRENT USER
@@ -41,10 +75,13 @@ router.get("/me", (req, res) => {
     if (!req.session.user) {
 
         return res.json({
+
             loggedIn: false
+
         });
 
     }
+
 
     res.json({
 
@@ -56,6 +93,7 @@ router.get("/me", (req, res) => {
 
 });
 
+
 // ==========================
 // USER GUILDS
 // ==========================
@@ -65,11 +103,15 @@ router.get("/guilds", (req, res) => {
     if (!req.session.user) {
 
         return res.status(401).json({
+
             success: false,
+
             message: "Not logged in"
+
         });
 
     }
+
 
     res.json({
 
@@ -80,6 +122,7 @@ router.get("/guilds", (req, res) => {
     });
 
 });
+
 
 // ==========================
 // LOGOUT
@@ -98,5 +141,6 @@ router.get("/logout", (req, res) => {
     });
 
 });
+
 
 module.exports = router;
