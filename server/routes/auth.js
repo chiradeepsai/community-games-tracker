@@ -12,8 +12,14 @@ router.get(
     "/discord",
     (req, res, next) => {
 
-        // Remember where the user came from
-        req.session.returnUrl = req.headers.referer || "/";
+        // Save server context before OAuth redirect
+        req.session.guildContext = {
+
+            guildId: req.query.guildId || null,
+
+            guildName: req.query.guildName || null
+
+        };
 
         next();
 
@@ -33,6 +39,7 @@ router.get(
     }),
     (req, res) => {
 
+
         req.session.user = {
 
             discordId: req.user.discordId,
@@ -46,16 +53,14 @@ router.get(
         };
 
 
-        // Return to original page
-        const returnUrl = req.session.returnUrl;
+        const guild = req.session.guildContext;
 
 
-        delete req.session.returnUrl;
+        if (guild && guild.guildId) {
 
-
-        if (returnUrl) {
-
-            return res.redirect(returnUrl);
+            return res.redirect(
+                `/?guildId=${guild.guildId}&guildName=${encodeURIComponent(guild.guildName || "")}`
+            );
 
         }
 
@@ -72,6 +77,7 @@ router.get(
 
 router.get("/me", (req, res) => {
 
+
     if (!req.session.user) {
 
         return res.json({
@@ -87,39 +93,12 @@ router.get("/me", (req, res) => {
 
         loggedIn: true,
 
-        user: req.session.user
+        user: req.session.user,
+
+        guild: req.session.guildContext || null
 
     });
 
-});
-
-
-// ==========================
-// USER GUILDS
-// ==========================
-
-router.get("/guilds", (req, res) => {
-
-    if (!req.session.user) {
-
-        return res.status(401).json({
-
-            success: false,
-
-            message: "Not logged in"
-
-        });
-
-    }
-
-
-    res.json({
-
-        success: true,
-
-        guilds: req.session.user.guilds || []
-
-    });
 
 });
 
@@ -130,6 +109,7 @@ router.get("/guilds", (req, res) => {
 
 router.get("/logout", (req, res) => {
 
+
     req.logout(() => {
 
         req.session.destroy(() => {
@@ -139,6 +119,7 @@ router.get("/logout", (req, res) => {
         });
 
     });
+
 
 });
 
